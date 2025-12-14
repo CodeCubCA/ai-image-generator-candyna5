@@ -1,86 +1,109 @@
-# AI Image Generator
+# AI Image Generator 🎨
 
-A beautiful web application that generates images from text descriptions using AI, powered by HuggingFace's Inference API and Streamlit.
+A professional web application that generates stunning AI images from text descriptions using HuggingFace's FLUX.1-schnell model and Streamlit.
 
-## Features
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-- Simple and intuitive web interface
-- Generate high-quality images from text descriptions
-- Powered by FLUX.1-schnell model (fast and high-quality)
-- Download generated images
-- Real-time error handling and user feedback
-- Loading indicators during generation
+## ✨ Features
 
-## Prerequisites
+- **🎭 Multiple Art Styles**: Choose from 10 different artistic styles
+  - Realistic, Cartoon, Anime, Oil Painting, Watercolor
+  - 3D Render, Digital Art, Sketch, Cyberpunk, Fantasy
+
+- **🖼️ Image History Gallery**: View and manage up to 10 generated images
+  - Grid layout with thumbnails
+  - Individual download buttons
+  - Prompt reuse functionality
+  - Session-based storage
+
+- **⚡ Fast Generation**: Powered by FLUX.1-schnell model (10-30 seconds per image)
+
+- **💾 Download Functionality**: Save images with timestamped filenames
+
+- **🎨 Intuitive UI**: Clean, responsive interface with real-time feedback
+
+- **🔧 Advanced Options**: Toggle style modifiers, view full prompts
+
+## 🚀 Technologies Used
+
+- **Python 3.8+**
+- **Streamlit** - Web interface framework
+- **HuggingFace Inference API** - AI model hosting
+- **FLUX.1-schnell** - State-of-the-art image generation model
+- **Pillow (PIL)** - Image processing
+- **python-dotenv** - Environment management
+
+## 📋 Prerequisites
 
 - Python 3.8 or higher
 - HuggingFace account (free)
-- HuggingFace API token with appropriate permissions
+- HuggingFace API token with Write permissions
 
-## Installation
+## 🛠️ Installation
 
-1. **Clone or download this project**
+### 1. Clone the Repository
 
-2. **Create a virtual environment (recommended)**
-   ```bash
-   python -m venv venv
+```bash
+git clone https://github.com/CodeCubCA/ai-image-generator-candyna5.git
+cd ai-image-generator-candyna5
+```
 
-   # On Windows
-   venv\Scripts\activate
+### 2. Create Virtual Environment (Recommended)
 
-   # On macOS/Linux
-   source venv/bin/activate
-   ```
+```bash
+python -m venv venv
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Windows
+venv\Scripts\activate
 
-4. **Set up your HuggingFace API token**
+# macOS/Linux
+source venv/bin/activate
+```
 
-   a. Go to [HuggingFace Settings - Tokens](https://huggingface.co/settings/tokens)
+### 3. Install Dependencies
 
-   b. Click "New token"
+```bash
+pip install -r requirements.txt
+```
 
-   c. Give it a name (e.g., "image-generator")
+### 4. Get HuggingFace API Token
 
-   d. Select **Write** permissions (or at minimum "Make calls to the serverless Inference API")
+1. Go to [HuggingFace Settings - Tokens](https://huggingface.co/settings/tokens)
+2. Click "New token"
+3. Name it (e.g., "image-generator")
+4. Select **Write** permissions
+5. Copy the token (starts with `hf_...`)
 
-   e. Copy the generated token (starts with `hf_...`)
+### 5. Configure Environment
 
-5. **Create your `.env` file**
-   ```bash
-   # Copy the example file
-   copy .env.example .env    # Windows
-   cp .env.example .env      # macOS/Linux
-   ```
+```bash
+# Copy the example file
+cp .env.example .env
 
-6. **Edit the `.env` file and add your token**
-   ```
-   HUGGINGFACE_TOKEN=hf_your_actual_token_here
-   ```
+# Edit .env and add your token
+HUGGINGFACE_TOKEN=hf_your_actual_token_here
+```
 
-## Usage
+## 🎮 Usage
 
-1. **Start the application**
-   ```bash
-   streamlit run app.py
-   ```
+### Start the Application
 
-2. **Open your browser**
-   - The app will automatically open at `http://localhost:8501`
-   - If it doesn't, manually navigate to that URL
+```bash
+streamlit run app.py
+```
 
-3. **Generate images**
-   - Enter a description of the image you want to create
-   - Click "Generate Image"
-   - Wait 10-30 seconds for the AI to create your image
-   - Download the image if you like it!
+The app will automatically open at `http://localhost:8501`
 
-## Example Prompts
+### Generate Your First Image
 
-Try these prompts to get started:
+1. **Select a Style**: Choose from 10 artistic styles in the left panel
+2. **Enter Description**: Type what you want to generate
+3. **Click Generate**: Wait 10-30 seconds for AI magic
+4. **Download & Save**: Images appear in the gallery below
+
+## 💡 Example Prompts
 
 - "A serene mountain landscape at sunset with a crystal-clear lake"
 - "A cute robot reading a book in a cozy library"
@@ -88,69 +111,83 @@ Try these prompts to get started:
 - "A futuristic city with flying cars and neon lights"
 - "A watercolor painting of a peaceful garden with butterflies"
 
-## Troubleshooting
+## 🎭 Available Styles
+
+| Style | Description |
+|-------|-------------|
+| Realistic | Photorealistic, highly detailed, 8K quality |
+| Cartoon | Animated, colorful, playful illustration |
+| Anime | Manga style, vibrant colors, detailed art |
+| Oil Painting | Artistic brush strokes, fine art |
+| Watercolor | Soft colors, flowing paint effect |
+| 3D Render | Cinematic lighting, high-quality CGI |
+| Digital Art | Concept art, artstation quality |
+| Sketch | Hand-drawn, detailed linework |
+| Cyberpunk | Neon lights, futuristic sci-fi |
+| Fantasy | Magical, ethereal, dreamlike |
+
+## 🖼️ Image History Features
+
+- **Auto-save**: All generated images saved to session history
+- **Grid View**: Clean 3-column layout
+- **Download Individual**: Each image has its own download button
+- **Reuse Prompts**: Click "🔄 Reuse" to regenerate similar images
+- **Clear History**: Remove all images with one click
+- **Max 10 Images**: Automatic memory management
+
+## ⚠️ Troubleshooting
 
 ### Authentication Error (401)
-- Check that your token is correctly copied in the `.env` file
-- Ensure your token has the correct permissions (Write or Inference API access)
-- Token might be revoked - create a new one
+- Verify token is correctly copied in `.env`
+- Ensure token has Write permissions
+- Token may be revoked - create a new one
 
 ### Rate Limit Error (429)
-- You've exceeded the free tier limits
-- Wait a few minutes before trying again
-- Consider upgrading to HuggingFace Pro for higher limits
+- Free tier has limited requests per hour
+- Wait a few minutes before retrying
+- Consider HuggingFace Pro for higher limits
 
 ### Model Loading Error (503)
-- The model is warming up (happens when not used recently)
+- Model is warming up (first use after idle period)
 - Wait 1-2 minutes and try again
 
 ### Token Not Found
-- Make sure the `.env` file is in the same directory as `app.py`
-- Check that the variable name is exactly `HUGGINGFACE_TOKEN`
-- Restart the application after creating/modifying the `.env` file
+- Ensure `.env` file is in the project root
+- Variable name must be exactly `HUGGINGFACE_TOKEN`
+- Restart application after modifying `.env`
 
-## Technologies Used
+## 📊 Rate Limits
 
-- **Streamlit**: Web interface framework
-- **HuggingFace Hub**: AI model inference
-- **FLUX.1-schnell**: State-of-the-art image generation model
-- **Python-dotenv**: Environment variable management
-- **Pillow**: Image processing
-
-## Models
-
-The application uses `black-forest-labs/FLUX.1-schnell` by default. This model is:
-- Fast (generates images in 10-30 seconds)
-- High quality
-- Publicly accessible on HuggingFace
-
-### Alternative Models
-
-You can modify the `MODEL_NAME` in `app.py` to use other models:
-- `stabilityai/stable-diffusion-xl-base-1.0`
-- `runwayml/stable-diffusion-v1-5`
-
-## Rate Limits
-
-The free HuggingFace tier has rate limits:
-- Limited number of requests per hour
+**Free Tier:**
+- Limited requests per hour
 - May experience slower generation during peak times
-- For production use, consider HuggingFace Pro
 
-## License
+**For Production:**
+- Consider [HuggingFace Pro](https://huggingface.co/pricing) for higher limits
+- Better performance and reliability
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs
+- Suggest new features
+- Submit pull requests
+
+## 📄 License
 
 This project is open source and available for personal and educational use.
 
-## Support
-
-If you encounter issues:
-1. Check the troubleshooting section above
-2. Verify your API token is valid and has correct permissions
-3. Check [HuggingFace Status](https://status.huggingface.co/) for service issues
-4. Review the error messages in the application
-
-## Credits
+## 🙏 Credits
 
 - Built with [Streamlit](https://streamlit.io/)
 - Powered by [HuggingFace](https://huggingface.co/)
-- Uses FLUX.1-schnell model by [Black Forest Labs](https://huggingface.co/black-forest-labs)
+- FLUX.1-schnell model by [Black Forest Labs](https://huggingface.co/black-forest-labs)
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/CodeCubCA/ai-image-generator-candyna5/issues)
+- **HuggingFace Status**: [status.huggingface.co](https://status.huggingface.co/)
+
+---
+
+Made with ❤️ using AI and Streamlit

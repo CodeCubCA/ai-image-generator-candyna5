@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from PIL import Image
 import io
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -68,11 +69,14 @@ def get_client():
 
 client = get_client()
 
+# Initialize session state for image history
+if 'image_history' not in st.session_state:
+    st.session_state.image_history = []
+
 # Main interface
 st.markdown("---")
 
-# Style selection
-st.subheader("🎭 Choose Image Style")
+# Style options dictionary
 style_options = {
     "Realistic": "photorealistic, highly detailed, 8k, professional photography",
     "Cartoon": "cartoon style, animated, colorful, fun, playful illustration",
@@ -86,61 +90,73 @@ style_options = {
     "Fantasy": "fantasy art, magical, ethereal, dreamlike, mystical"
 }
 
-selected_style = st.selectbox(
-    "Select a style:",
-    options=list(style_options.keys()),
-    index=0,
-    help="Choose the artistic style for your generated image"
-)
+# Create two columns: left sidebar and main content
+col1, col2 = st.columns([1, 2])
 
-# Display style description
-st.caption(f"✨ **Style modifier:** {style_options[selected_style]}")
+# Left column - Style selection
+with col1:
+    st.subheader("🎭 Style")
+    selected_style = st.selectbox(
+        "Choose style:",
+        options=list(style_options.keys()),
+        index=0,
+        help="Choose the artistic style for your generated image"
+    )
 
-st.markdown("---")
+    # Display style description
+    st.caption(f"✨ {style_options[selected_style]}")
 
-# Text input for prompt
-prompt = st.text_area(
-    "Enter your image description:",
-    placeholder="Example: A serene mountain landscape at sunset with a crystal-clear lake",
-    height=100
-)
+    st.markdown("---")
 
-# Advanced options (optional)
-with st.expander("⚙️ Advanced Options"):
-    st.info(f"Current Model: **{MODEL_NAME}**")
-    st.caption("FLUX.1-schnell is optimized for fast, high-quality image generation")
+    # Advanced options
+    st.subheader("⚙️ Settings")
+    use_style = st.checkbox(
+        "Apply style modifier",
+        value=True,
+        help="Uncheck to use only your prompt without style modifiers"
+    )
 
-    # Option to disable style modifier
-    use_style = st.checkbox("Apply style modifier to prompt", value=True,
-                           help="Uncheck to use only your prompt without style modifiers")
+    with st.expander("ℹ️ Model Info"):
+        st.info(f"**{MODEL_NAME}**")
+        st.caption("FLUX.1-schnell is optimized for fast, high-quality image generation")
 
-# Generate button
-generate_button = st.button("🚀 Generate Image", type="primary")
+# Right column - Main content
+with col2:
+    # Text input for prompt
+    prompt = st.text_area(
+        "Enter your image description:",
+        placeholder="Example: A serene mountain landscape at sunset with a crystal-clear lake",
+        height=150
+    )
 
-# Image generation logic
-if generate_button:
-    if not prompt.strip():
-        st.warning("⚠️ Please enter a description for your image")
-    elif not client:
-        st.error("❌ HuggingFace client not initialized. Please check your API token.")
-    else:
-        try:
-            # Construct the final prompt with style modifier
-            final_prompt = prompt
-            if use_style and selected_style in style_options:
-                final_prompt = f"{prompt}, {style_options[selected_style]}"
+    # Generate button
+    generate_button = st.button("🚀 Generate Image", type="primary")
 
-            # Show loading spinner
-            with st.spinner("🎨 Generating your image... This may take 10-30 seconds"):
-                # Display the prompt being used
-                with st.expander("📝 View Full Prompt"):
-                    st.code(final_prompt, language=None)
+# Image generation logic (in the right column)
+with col2:
+    if generate_button:
+        if not prompt.strip():
+            st.warning("⚠️ Please enter a description for your image")
+        elif not client:
+            st.error("❌ HuggingFace client not initialized. Please check your API token.")
+        else:
+            try:
+                # Construct the final prompt with style modifier
+                final_prompt = prompt
+                if use_style and selected_style in style_options:
+                    final_prompt = f"{prompt}, {style_options[selected_style]}"
 
-                # Generate image using InferenceClient
-                image = client.text_to_image(
-                    prompt=final_prompt,
-                    model=MODEL_NAME
-                )
+                # Show loading spinner
+                with st.spinner("🎨 Generating your image... This may take 10-30 seconds"):
+                    # Display the prompt being used
+                    with st.expander("📝 View Full Prompt"):
+                        st.code(final_prompt, language=None)
+
+                    # Generate image using InferenceClient
+                    image = client.text_to_image(
+                        prompt=final_prompt,
+                        model=MODEL_NAME
+                    )
 
                 # Display the generated image
                 st.success("✅ Image generated successfully!")
@@ -151,49 +167,133 @@ if generate_button:
                 image.save(buf, format="PNG")
                 byte_im = buf.getvalue()
 
+                # Save to image history
+                image_data = {
+                    'image': image,
+                    'image_bytes': byte_im,
+                    'prompt': prompt,
+                    'full_prompt': final_prompt,
+                    'style': selected_style,
+                    'timestamp': datetime.now()
+                }
+                st.session_state.image_history.insert(0, image_data)
+
+                # Limit to 10 images
+                if len(st.session_state.image_history) > 10:
+                    st.session_state.image_history = st.session_state.image_history[:10]
+
                 # Download button
                 st.download_button(
                     label="⬇️ Download Image",
                     data=byte_im,
-                    file_name="generated_image.png",
+                    file_name=f"ai_generated_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
                     mime="image/png"
                 )
 
-        except Exception as e:
-            error_message = str(e)
+            except Exception as e:
+                error_message = str(e)
 
-            # Handle specific error cases
-            if "401" in error_message or "authentication" in error_message.lower():
-                st.error("❌ Authentication failed!")
-                st.info("""
-                **Possible issues:**
-                - Invalid API token
-                - Token doesn't have the required permissions
-                - Token has been revoked
+                # Handle specific error cases
+                if "401" in error_message or "authentication" in error_message.lower():
+                    st.error("❌ Authentication failed!")
+                    st.info("""
+                    **Possible issues:**
+                    - Invalid API token
+                    - Token doesn't have the required permissions
+                    - Token has been revoked
 
-                **Solution:**
-                - Go to https://huggingface.co/settings/tokens
-                - Create a new token with **Write** permissions (or at minimum "Make calls to the serverless Inference API")
-                - Update your `.env` file with the new token
-                """)
-            elif "429" in error_message or "rate limit" in error_message.lower():
-                st.error("❌ Rate limit exceeded!")
-                st.info("""
-                **You've hit the API rate limit.**
-                - Free tier has limited requests per hour
-                - Please wait a few minutes and try again
-                - Consider upgrading to HuggingFace Pro for higher limits
-                """)
-            elif "503" in error_message or "loading" in error_message.lower():
-                st.error("❌ Model is loading!")
-                st.info("""
-                **The model is currently loading.**
-                - This happens when the model hasn't been used recently
-                - Please wait 1-2 minutes and try again
-                """)
-            else:
-                st.error(f"❌ Error generating image: {error_message}")
-                st.info("Please try again or check your internet connection.")
+                    **Solution:**
+                    - Go to https://huggingface.co/settings/tokens
+                    - Create a new token with **Write** permissions (or at minimum "Make calls to the serverless Inference API")
+                    - Update your `.env` file with the new token
+                    """)
+                elif "429" in error_message or "rate limit" in error_message.lower():
+                    st.error("❌ Rate limit exceeded!")
+                    st.info("""
+                    **You've hit the API rate limit.**
+                    - Free tier has limited requests per hour
+                    - Please wait a few minutes and try again
+                    - Consider upgrading to HuggingFace Pro for higher limits
+                    """)
+                elif "503" in error_message or "loading" in error_message.lower():
+                    st.error("❌ Model is loading!")
+                    st.info("""
+                    **The model is currently loading.**
+                    - This happens when the model hasn't been used recently
+                    - Please wait 1-2 minutes and try again
+                    """)
+                else:
+                    st.error(f"❌ Error generating image: {error_message}")
+                    st.info("Please try again or check your internet connection.")
+
+# Image History Gallery
+st.markdown("---")
+st.markdown("## 🖼️ Image History")
+
+if len(st.session_state.image_history) > 0:
+    # Header with count and clear button
+    col_header1, col_header2 = st.columns([2, 1])
+    with col_header1:
+        st.markdown(f"**{len(st.session_state.image_history)} image(s) in history** (max 10)")
+    with col_header2:
+        if st.button("🗑️ Clear History"):
+            st.session_state.image_history = []
+            st.rerun()
+
+    st.markdown("---")
+
+    # Display images in grid (3 columns)
+    for idx in range(0, len(st.session_state.image_history), 3):
+        cols = st.columns(3)
+
+        for col_idx, col in enumerate(cols):
+            img_idx = idx + col_idx
+            if img_idx < len(st.session_state.image_history):
+                img_data = st.session_state.image_history[img_idx]
+
+                with col:
+                    # Display image
+                    st.image(img_data['image'], use_container_width=True)
+
+                    # Style badge
+                    st.markdown(f"**🎭 Style:** {img_data['style']}")
+
+                    # Prompt (expandable if long)
+                    if len(img_data['prompt']) > 60:
+                        with st.expander("📝 View Prompt"):
+                            st.caption(img_data['prompt'])
+                    else:
+                        st.caption(f"📝 {img_data['prompt']}")
+
+                    # Timestamp
+                    time_str = img_data['timestamp'].strftime("%I:%M %p")
+                    st.caption(f"🕒 {time_str}")
+
+                    # Action buttons
+                    col_btn1, col_btn2 = st.columns(2)
+
+                    with col_btn1:
+                        # Download button
+                        st.download_button(
+                            label="⬇️ Save",
+                            data=img_data['image_bytes'],
+                            file_name=f"ai_img_{img_data['timestamp'].strftime('%Y%m%d_%H%M%S')}.png",
+                            mime="image/png",
+                            key=f"download_{img_idx}",
+                            use_container_width=True
+                        )
+
+                    with col_btn2:
+                        # Regenerate button (copies prompt to input)
+                        if st.button("🔄 Reuse", key=f"regen_{img_idx}", use_container_width=True):
+                            st.session_state.reuse_prompt = img_data['prompt']
+                            st.session_state.reuse_style = img_data['style']
+                            st.info(f"✅ Prompt copied! Scroll up to generate.")
+
+                    st.markdown("---")
+
+else:
+    st.info("No images generated yet. Create your first image above! 👆")
 
 # Footer
 st.markdown("---")
